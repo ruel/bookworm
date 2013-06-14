@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <title>Bookworm - {{ book.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" />
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet" />
+    <link href="css/font-awesome.min.css" rel="stylesheet" />
+    <link href="css/shared.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="fb-root"></div>
+    <div class="container">
+        <div class="page-header">
+            <p class="tbar"><a href="/" class="nostyle"><span class="green">Book</span>worm</a></p>
+            <span class="fright" id="fbrep"><i class='icon-spinner icon-spin icon-large'></i> Please wait..</span>
+        </div>
+        <div class="row" id="details">
+            <span>
+                <img src="{{ book.cover_image_url }}" />
+                <h4>{{ book.title }}</h4>
+                <p class="authordet">by <em>{{ book.authors[0] }}</em></p>
+                <p class="desc">{{ book.description }}</p>
+                <p><a href="{{ book.download_url }}" class="btn btn-inverse btn-large">Download</a></p>
+                <p><a href="#" id="share" class="btn btn-info">Share on Facebook</a></p>
+            </span>
+        </div>
+    </div>
+    <script src="js/jquery.js"></script>
+    <script src="js/holder.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/fb.js"></script>
+    <script>
+        $(document).on('ready', function() {
+            $('#share').click(function(e) {
+                FB.ui({
+                    method: 'feed',
+                    redirect_uri: 'http://bookworm.ruel.me/book?id={{ book.book_id }}',
+                    link: 'http://bookworm.ruel.me/book?id={{ book.book_id }}',
+                    picture: '{{ book.cover_image_url }}',
+                    name: '{{ book.title }}',
+                    caption: 'Review this book on Bookworm',
+                    description: '{{ book.description }}'
+                }, function(response) {
+                });
+            });
+        });
+    </script>
+</body>
+</html>

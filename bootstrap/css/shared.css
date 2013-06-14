@@ -1,0 +1,100 @@
+body { 
+    padding-top: 60px;
+    font-family: HelveticaNeue-Light;
+    color: #666; 
+}
+.page-header {
+    height: 80px;
+    margin-bottom: 30px;
+}
+#details {
+    width: 800px;
+    margin: auto;
+    text-align: center;
+}
+#searchtxt {
+}
+.sidebar {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+}
+#details p {
+    padding: 20px;
+    font-size: 1.3em;
+    color: #888;
+}
+.book {
+    height: 400px;
+}
+.book img {
+    display: block;
+    max-width: 250px;
+    max-height: 300px;
+    margin: auto;
+}
+.book p {
+    text-align: center;
+}
+.imgholder {
+    height: 300px;
+    margin: auto;
+}
+a.nostyle:link, a.nostyle:hover, a.nostyle:active, a.nostyle:visited {
+    text-decoration: none;
+    color: #666;
+}
+.mtitle {
+    height: 60px;
+    display: none;
+}
+.tbar {
+    font-size: 3.5em;
+    font-weight: lighter;
+    float: left;
+    margin-top:10px;
+}
+.fright {
+    float: right;
+    display: inline;
+    position: relative;
+    right: 0px;
+    top: 0px;
+}
+.fbthumb {
+    border: 3px solid #fff;
+    box-shadow: 0px 0px 2px #333;
+}
+#main-header {
+    font-size: 6em;
+    font-family: HelveticaNeue-Light;
+    text-align: center;
+    font-weight: lighter;
+    color: #666;
+    margin-top: 80px;
+}
+#mlogin {
+    width: 300px;
+    text-align: center;
+    margin: 60px auto 20px auto;
+}
+#fblogin {
+    width: 300px;
+}
+#start {
+    text-align: center;
+    width: 500px;
+    padding: 30px;
+    margin: 60px auto;
+}
+#start p {
+    color: #777;
+    font-size: 1.3em;
+    margin-bottom: 30px;
+}
+#viewbooks {
+    width: 250px;
+    margin: auto;
+}
+.green {
+    color: #46a546;
+}

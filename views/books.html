@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+    <title>Bookworm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" />
+    <link href="css/font-awesome.min.css" rel="stylesheet" media="screen" />
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet" />
+    <link href="css/shared.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="fb-root"></div>
+    <div class="container">
+        <div class="page-header">
+            <p class="tbar"><a href="/" class="nostyle"><span class="green">Book</span>worm</a></p>
+            <span class="fright" id="fbrep"><i class='icon-spinner icon-spin icon-large'></i> Please wait..</span>
+        </div>
+        <div class="row">
+            <div class="span3 sidebar bs-docs-sidebar">
+                <div class="pagination pagination-centered">
+                    <ul>
+                        <li><a href="#">Prev</a></li>
+                        <li><a href="#">1</a></li>
+                        <li><a href="#">2</a></li>
+                        <li><a href="#">Next</a></li>
+                    </ul>
+                </div>
+                <input type="text" id="searchtxt" class="input-medium search-query">
+                <div id="sby" class="btn-group">
+                    <button class="btn dropdown-toggle" data-toggle="dropdown">
+                        Search
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="stitle">Title</a></li>
+                        <li><a href="#" id="sdesc">Description</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="span9">
+                <ul id="books" class="thumbnails">
+                    {% for book in books.data -%}
+                        <li id="{{ book.book_id }}" class="book span3">
+                            <h3 class="mtitle">{{ book.title }}</h3>
+                            <div class="imgholder">
+                                <img class="timg" data-toggle="tooltip" data-original-title="{{ book.title }}" src="{{ book.cover_image_url }}" />
+                            </div>
+                            {% for author in book.authors -%}
+                                <p class="author">by {{ author }}</p>
+                            {%- endfor %}
+                            <p><a class="btn btn-small" href="/book?id={{ book.book_id }}">View Book</a></p>
+                        </li>
+                    {%- endfor %} 
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="js/jquery.js"></script>
+    <script src="js/holder.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/fb.js"></script>
+    <script>
+        $(document).on('ready', function() {
+            $('.timg').tooltip();
+        });
+    </script>
+</body>
+</html>
