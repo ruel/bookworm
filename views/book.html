@@ -10,29 +10,169 @@
 </head>
 <body>
     <div id="fb-root"></div>
-    <div class="container">
+    <div id="wrap" class="container">
         <div class="page-header">
-            <p class="tbar"><a href="/" class="nostyle"><span class="green">Book</span>worm</a></p>
+            <p class="tbar"><a href="/" class="nostyle"><span class="green">book</span>worm</a></p>
             <span class="fright" id="fbrep"><i class='icon-spinner icon-spin icon-large'></i> Please wait..</span>
         </div>
         <div class="row" id="details">
             <span>
                 <img src="{{ book.cover_image_url }}" />
                 <h4>{{ book.title }}</h4>
+                <div id="bookrating"></div>
                 <p class="authordet">by <em>{{ book.authors[0] }}</em></p>
                 <p class="desc">{{ book.description }}</p>
-                <p><a href="{{ book.download_url }}" class="btn btn-inverse btn-large">Download</a></p>
+                <p>
+                    <div class="dcover">
+                        <input readonly id="dtxt" type="text" value="{{ book.download_url }}" />
+                        <a href="#" id="dbtn" class="btn btn-inverse">Download</a>
+                        <a href="#" id="cbtn" class="btn btn-danger">Report Broken Link</a>
+                    </div>
+                </p>
                 <p><a href="#" id="share" class="btn btn-info">Share on Facebook</a></p>
             </span>
+        </div>
+        <hr />
+        <div class="row" id="reviews">
+            <h3>Reviews</h3>
+            <div id="addform">
+                
+                <div class="rev">Rating: <div class="rate" id="rate"></div></div>
+                <textarea id="comment" rows="3" placeholder="Comment" required></textarea>
+                <button id="arev" class="rev btn">Add Review</button>
+                <input type="hidden" id="score" value="0" />
+            </div>
+            <div id="addreverr" class="alert alert-error">
+            </div>
+            {% for review in book.reviews -%}
+            <hr />
+            <div id="r{{ review.uid }}" class="review">
+                <div id="e{{ review.uid }}" class="alert alert-error reverr"></div>
+                <button id="c{{ review.uid }}" type="button" class="close">&times;</button>
+                <img class="fbthumb" src="https://graph.facebook.com/{{ review.uid }}/picture" />
+                <span class="fbname">Facebook User</span>
+                <div class="rrate rate" data-score="{{ review.rating }}"></div>
+                <p class="comment rev">{{ review.comment }}</p>
+                <p class="rsmall rev">Posted: {{ review.date_created_formatted }}</p>
+            </div>
+            {% else %}
+            <div id="norev" class="alert">
+                <strong>No reviews yet!</strong>
+                Be the first one to review this book!
+            </div>
+            {%- endfor %}
+        </div>
+        
+        <div id="push">
+        </div>
+    </div>
+    <div id="footer">
+        <div class="container">
+            <p class="credit">
+                <a href="/" class="nostyle"><i class="icon-home icx"></i> Home</a>
+                <a href="/books" class="nostyle"><i class="icon-book icx"></i> Books</a>
+                <a href="/admin" class="nostyle"><i class="icon-meh icx"></i> Admin</a>
+                <span class="fright ftext"><span class="green">book</span>worm</span>
+            </p>
         </div>
     </div>
     <script src="js/jquery.js"></script>
     <script src="js/holder.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/fb.js"></script>
+    <script src="js/jquery.raty.min.js"></script>
     <script>
+        function reloadFbNames() {
+            $('.review').each(function() {
+                var th = $(this);
+                $.get('https://graph.facebook.com/' + $(this).attr('id').substring(1), function(data) {
+                    if (data.name !== undefined)
+                        th.find('.fbname').text(data.name);
+                });
+            });
+        }
         $(document).on('ready', function() {
+            $('.reverr').hide();
+            $('.close').click(function(e) {
+                var id = $(this).attr('id').substring(1);
+                e.preventDefault();
+                $.post('/delreview', {
+                    access_token : getToken(),
+                    uid : id,
+                    book_id : '{{ book.book_id }}'
+                }, function (data) {
+                    if (data.status === "OK") {
+                        $('#r' + id).slideUp(500);
+                    } else {
+                        $('#e' + id).html(data.message);
+                        $('#e' + id).slideDown(500).delay(2000).slideUp(500);
+                    }
+                }, 'json').fail(function(error) {
+                    $('#e' + id).html('Server Error');
+                    $('#e' + id).slideDown(500).delay(2000).slideUp(500);
+                });
+            });
+            $('#dbtn').click(function(e) {
+                e.preventDefault();
+                window.open($('#dtxt').val(), '_blank');
+            });
+            reloadFbNames();
+            $('.rrate').raty({
+                path: 'img',
+                readOnly: true,
+                score : function() {
+                    return $(this).attr('data-score');
+                }
+            });
+            $('#addreverr').hide();
+            $('#arev').click(function(e) {
+                e.preventDefault();
+                var score = $('#score').val();
+                score = parseInt(score);
+                if(!isNaN(score) &&
+                    score > 0 &&
+                    $('#comment').val().length > 0) {
+                    
+                    $.post('/postreview', {
+                        access_token : getToken(),
+                        book_id : '{{ book.book_id }}',
+                        rating : score,
+                        comment : $('#comment').val()
+                    }, function(data) {
+                        if (data.status === 'OK') {
+                            location.reload();
+                        } else {
+                            $('#addreverr').html(data.message);
+                            $('#addreverr').slideDown(500).delay(2000).slideUp(500);
+                        }
+                    }, 'json').fail(function(error) {
+                        $('#addreverr').html("Server error has occured!");
+                        $('#addreverr').slideDown(500).delay(2000).slideUp(500);
+                    });
+                } else {
+                    $('#addreverr').html('Please complete the review form');
+                    $('#addreverr').slideDown(500).delay(2000).slideUp(500);
+                }
+            });
+            $('#cbtn').click(function(e) {
+                e.preventDefault();
+            });
+            $('#dtxt').width((($('#dtxt').val().length + 1) * 8) + 'px');
+            $('#bookrating').raty({ 
+                path : 'img',
+                score: parseInt({{ book.rating_average }}),
+                size: 24,
+                readOnly : true
+            });
+            $('#rate').raty({
+                targetKeep : true,
+                path : 'img',
+                size: 24,
+                target: '#score',
+                targetType: 'number'
+            });
             $('#share').click(function(e) {
+                e.preventDefault();
                 FB.ui({
                     method: 'feed',
                     redirect_uri: 'http://bookworm.ruel.me/book?id={{ book.book_id }}',
@@ -44,6 +184,8 @@
                 }, function(response) {
                 });
             });
+            $('.close').hide();
+            $('#addform').hide();
         });
     </script>
 </body>

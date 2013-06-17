@@ -1,27 +1,140 @@
+html, body {
+    height: 100%;
+}
+#wrap {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0px auto -60px;
+}
+#push, #footer {
+    height: 60px;
+}
+.sidebar {
+    width: 269px !important;
+    border-right: 1px solid #f5f5f5;    
+}
+#cont {
+    margin-top: 100px;
+}
+.abook {
+    padding: 5px;
+}
+.abtn {
+    width: 400px;
+    margin: 10px auto;
+    display: block;
+}
+#footer {
+    background-color: #f5f5f5;
+}
+.affix {
+    top: 20px;
+}
+#tags, #authors {
+    display: block;
+    font-size: small;
+}
+.hidden {
+    display: none;
+}
+@media (max-width: 767px) {
+    #footer {
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
 body { 
-    padding-top: 60px;
     font-family: HelveticaNeue-Light;
     color: #666; 
 }
+.credit {
+    margin: 15px 0;
+}
+.ftext {
+    font-size: 1.2em;
+}
+.rsmall {
+    font-size: x-small;
+    color: #999;
+}
+.credit a {
+    margin-left: 20px;
+}
 .page-header {
     height: 80px;
+    margin-top: 60px;
     margin-bottom: 30px;
+}
+.stitle {
+    background-color: #f5f5f5;
+    cursor: pointer;
+    padding: 5px;
 }
 #details {
     width: 800px;
     margin: auto;
     text-align: center;
+    padding: 50px;
 }
-#searchtxt {
+
+#reviews {
+    width: 600px;
+    margin: 10px auto 60px;
+}
+.rev {
+    display: block;
+    width: 470px;
+    margin: 5px auto;
+}
+.rate {
+    display: inline;
+    margin-left: 5px;
+}
+#comment {
+    resize: none;
+    width: 470px;
+    display: block;
+    margin: 10px auto;
+}
+.fbname {
+    margin-left: 10px;
+}
+.comment {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+}
+.review {
+    margin-top: 20px;
 }
 .sidebar {
     font-size: 1.3em;
     margin-bottom: 15px;
 }
+.pagination {
+    font-size: small !important;
+    width: 270px;
+}
+.dcover {
+    border-radius: 5px;
+    padding: 10px;
+}
+#dtxt {
+    display: block;
+    margin: 10px auto;
+    text-align: center;
+    font-size: 1.1em;
+    cursor: text;
+    background-color: white;
+}
 #details p {
-    padding: 20px;
+    padding: 8px;
     font-size: 1.3em;
     color: #888;
+    line-height: 1.5em;
 }
 .book {
     height: 400px;
@@ -30,6 +143,10 @@ body {
     display: block;
     max-width: 250px;
     max-height: 300px;
+    margin: auto;
+}
+#bookrating {
+    display: block;
     margin: auto;
 }
 .book p {
@@ -70,12 +187,15 @@ a.nostyle:link, a.nostyle:hover, a.nostyle:active, a.nostyle:visited {
     text-align: center;
     font-weight: lighter;
     color: #666;
-    margin-top: 80px;
+    margin-top: 140px;
+}
+.icx {
+    font-size: 2em;
 }
 #mlogin {
     width: 300px;
     text-align: center;
-    margin: 60px auto 20px auto;
+    margin: 60px auto 0px auto;
 }
 #fblogin {
     width: 300px;
@@ -97,4 +217,7 @@ a.nostyle:link, a.nostyle:hover, a.nostyle:active, a.nostyle:visited {
 }
 .green {
     color: #46a546;
+}
+#addform {
+    margin-bottom: 20px;
 }

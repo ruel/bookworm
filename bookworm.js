@@ -20,17 +20,39 @@ function getOpts() {
     return opts;
 }
 
-function get(path, params, callback) {
+function get_delete(path, params, callback) {
+    
+    // Provide a method parameter
+    get(path, params, callback, 'DELETE');
+}
+
+function get(path, params, callback, method) {
+
+    // If somehow, method is defined
+    method = typeof method !== 'undefined' ? method : 'GET';
+
+    // Port for later on
+    var port = method === 'DELETE' ? 443 : 80;
 
     // Options
     var gopts = getOpts();
 
-    gopts.port      =   80;
+    // We need to change this later
+    var agent = http;
+
+    gopts.port      =   port;
     gopts.path      =   path + '?' + querystring.stringify(params);
-    gopts.method    =   'GET';
+    gopts.method    =   method;
+
+    // We need to set the right options for DELETE
+    if (method === 'DELETE') {
+        gopts['headers'] = { 'Content-Length' : 0 };
+        gopts['rejectUnauthorized'] = false;
+        agent = https;
+    }
 
     // Request object
-    var request = http.request(gopts, function(response) {
+    var request = agent.request(gopts, function(response) {
         var books = "";
 
         // If ever data is chunked
@@ -93,3 +115,4 @@ function post(path, get_params, post_params, callback) {
 // Export functions on our module
 exports.get = get;
 exports.post = post;
+exports.delete = get_delete;

@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+<head>
+    <title>Bookworm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" />
+    <link href="css/font-awesome.min.css" rel="stylesheet" media="screen" />
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet" />
+    <link href="css/shared.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="fb-root"></div>
+    <div id="wrap" class="container">
+        <div id="main-header">
+            <p><span class="green">book</span>worm</p>
+        </div>
+
+        <div id="cont">
+            <a href="#books-modal" class="abtn btn btn-block" id="books-btn">View Books</a>
+            <a href="#" class="abtn btn btn-block btn-primary" id="create-btn">Create Book</a>
+            <div id="login-modal" class="modal hide fade" tabindex="-1" role="dialog">
+                <div class="modal-header">
+                    <p>Log in to Bookworm API</p>
+                </div>
+                <div class="modal-body">
+                    <div id="loginerr" class="alert alert-error hide">
+                    </div>
+                    <form id="login-form" class="form-inline">
+                        <input type="text" class="input-large" id="username" placeholder="Username" />
+                        <input type="password" class="input-large" id="password" placeholder="Password" />
+                        <button class="btn" id="login">Login</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="data-modal" class="modal hide fade" tabindex="-1" role="dialog">
+                <div class="modal-header">
+                    <p>Book Information</p>
+                </div>
+                <div class="modal-body">
+                    <div id="dataerr" class="hide alert alert-error">
+                    </div>
+                    <form id="info" class="form-horizontal">
+                        <div class="control-group">
+                            <label class="control-label" for="btitle">Title</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="btitle" placeholder="Title" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="bdesc">Description</label>
+                            <div class="controls">
+                                <textarea type="text" class="input-xlarge" id="bdesc" placeholder="Description">
+                                </textarea>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="bauthors">Authors</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="bauthors" placeholder="Authors (comma separated)" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="btags">Tags</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="btags" placeholder="Tags (comma separated)" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="bdown">Download URL</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="bdown" placeholder="Download URL" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="bcover">Cover Image URL</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="bcover" placeholder="Cover Image URL" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="byear">Year</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" id="byear" placeholder="Year" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </div>
+             
+            <div id="books-modal" class="modal hide fade" tabindex="-1" role="dialog">
+                <div class="modal-header">
+                    <p>All Books</p>
+                </div> 
+                <div class="modal-body">
+                    <div id="bookerr" class="alert hide alert-error">
+                    </div>
+                    <ul id="books" class="nav">
+                    
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="push"></div>
+    </div>
+    <div id="footer">
+        <div class="container">
+            <p class="credit">
+                <a href="/" class="nostyle"><i class="icon-home icx"></i> Home</a>
+                <a href="/books" class="nostyle"><i class="icon-book icx"></i> Books</a>
+                <a href="#" id="alogout" class="nostyle"><i class="icon-meh icx"></i> Logout</a>
+                <span class="fright ftext"><span class="green">book</span>worm</span>
+            </p>
+        </div>
+    </div>
+    <script src="js/jquery.js"></script>
+    <script src="js/holder.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+        $(document).on('ready', function() {
+            if (!localStorage.getItem('admintoken')) {
+                $('#login-modal').modal({ backdrop: 'static', keyboard: false });
+            }
+            $('#login-form').submit(function(e) {
+                e.preventDefault();
+                $.post('https://node.ruel.me/admins/token', {
+                    username : $('#username').val(),
+                    password : $('#password').val()
+                },
+                function(data) {
+                    if (data.status === "OK") {
+                        localStorage.setItem('admintoken', data.data.access_token);
+                        $('#login-modal').modal('hide');
+                    } else {
+                        $('#loginerr').html(data.message);
+                        $('#loginerr').slideDown(500).delay(2000).slideUp(500);
+                    }
+                }, 'json');
+            });
+            $('#books-btn').click(function(e) {
+                e.preventDefault();
+                $.get('http://node.ruel.me/books', { limit : 0 }, function(data) {
+                    if (data.status === "OK") {
+                        $('#books').empty();
+                        $.each(data.data, function() {
+                            var out = '';
+                            out += '<li id="l' + this.book_id + '" class="abook"><button class="close" data-id="' + this.book_id + '">&times;</button><a href="#" class="upd" id="' + this.book_id + '">' + this.title + '</a></li>';
+                            $('#books').append(out);
+                        });
+                        $('#books-modal').modal();
+                    }
+                });
+            });
+            $('#create-btn').click(function(e) {
+                e.preventDefault();
+                $('#info').find("input[type=text], textarea").val("");
+                $('#data-modal').modal();
+                $('#btn-save').attr('data-method', 'POST');
+            });
+            $(document).on('click', '.upd', function(e) {
+                e.preventDefault();
+                $.get('http://node.ruel.me/books/' + $(this).attr('id'), {}, function(data) {
+                    if (data.status === "OK") {
+                        $('#btitle').val(data.data.title);
+                        $('#bdesc').val(data.data.description);
+                        $('#bauthors').val(data.data.authors.join(','));
+                        $('#btags').val(data.data.tags.join(','));
+                        $('#bdown').val(data.data.download_url);
+                        $('#bcover').val(data.data.cover_image_url);
+                        $('#byear').val(data.data.year);
+                        $('#books-modal').modal('hide');
+                        $('#data-modal').modal();
+                        $('#btn-save').attr('data-method', 'PATCH');
+                        $('#btn-save').attr('data-id', data.data.book_id);
+                    }
+                });
+            });
+            $(document).on('click', '.close', function(e) {
+                e.preventDefault();
+                var id = $(this).attr('data-id');
+                
+                var url = 'https://node.ruel.me/books/' + id + '?access_token=' + localStorage.getItem('admintoken');
+
+                $.ajax({
+                    url : url,
+                    type : 'DELETE',
+                }).done(function(data) {
+                    if (data.status === "OK") {
+                        $('#l' + id).slideUp(500);
+                    } else {
+                        $('#bookerr').html(data.message);
+                        $('#bookerr').slideDown(500).delay(2000).slideUp(500);
+                    }
+                }).error(function(e) {
+                    $('#bookerr').html("Server Error");
+                    $('#bookerr').slideDown(500).delay(2000).slideUp(500);
+                });
+                
+            });
+            $('#alogout').click(function(e) {
+                e.preventDefault();
+                localStorage.removeItem('admintoken');
+                window.location = '/';
+            });
+            $('#btn-save').click(function(e) {
+                var method = $(this).attr('data-method');
+                var id = $(this).attr('data-id');
+                var url = 'https://node.ruel.me/books';
+                var params = {
+                    title : $('#btitle').val(),
+                    description : $('#bdesc').val(),
+                    tags : $('#btags').val().split(','),
+                    authors : $('#bauthors').val().split(','),
+                    download_url : $('#bdown').val(),
+                    cover_image_url : $('#bcover').val(),
+                    year : $('#byear').val()
+                };
+
+                if (method === 'PATCH') {
+                    url += '/' + id;
+                }
+
+                url += '?access_token=' + localStorage.getItem('admintoken');
+
+                $.ajax({
+                    url : url,
+                    type : method,
+                    data : JSON.stringify(params),
+                    contentType : 'application/json;charset=utf8',
+                    dataType : 'json'
+                }).done(function(data) {
+                    if (data.status === "OK") {
+                        $('#data-modal').modal('hide'); 
+                    } else {
+                        $('#dataerr').html(data.message);
+                        $('#dataerr').slideDown(500).delay(2000).slideUp(500);
+                    }
+                }).error(function(e) {
+                    $('#dataerr').html("Server Error");
+                    $('#dataerr').slideDown(500).delay(2000).slideUp(500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
