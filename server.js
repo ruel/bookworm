@@ -8,10 +8,19 @@ var consolidate = require('consolidate');
 var swig = require('swig');
 var http = require('http');
 var https = require('https');
+var crypto = require('crypto');
 
 // Our very own bookworm api wrapper module
 // Sort of.
 var bookworm = require(__dirname + '/bookworm.js');
+
+// Caching, this saves the CPU from swig
+var page_cache = [];
+
+// Views and downloads changes more often
+// This can be tricky
+var view_cache = [];
+var down_cache = [];
 
 // app callback for http
 var app = express();
@@ -20,6 +29,7 @@ var app = express();
 // Such a drag debugging, till I realized
 // I forgot this line
 app.use(express.bodyParser());
+app.use(express.compress());
 
 // Swig initialization
 app.engine('.html', consolidate.swig);
@@ -34,7 +44,27 @@ app.set('views', __dirname + '/views');
 
 // Index
 app.get('/', function(request, response) {
-    response.render('index.html');
+    response.sendfile(__dirname + '/views/index.html');
+});
+
+// Ajax call for view counts and downloads
+app.get('/views', function(request, repsonse) {
+    
+    // Validate query
+    if (request.query.id !== undefined) {
+        var id = request.query.id;
+        if (id in views_cache && id in down_cache) {
+            response.json({ 
+                status : 'OK', 
+                view_count : view_cache[id], 
+                down_count : down_cache[id]
+            });
+        } else {
+            response.json({ status : 'NOK' });
+        }
+    } else {
+        response.json({ status : 'NOK' });
+    }
 });
 
 // Book details
@@ -43,7 +73,10 @@ app.get('/book', function(request, response) {
     // Validate parameter
     if (request.query.id !== undefined && request.query.id !== '') {
         var id = request.query.id;
-
+        
+        // Let's do the caching!
+        var hash = doMd5(id);
+        
         // Get content
         bookworm.get('/books/' + id, {}, function(data) {
              
@@ -51,7 +84,7 @@ app.get('/book', function(request, response) {
             if (data.status === 'OK')
                 
                 // Then get reviews
-                bookworm.get('/books/' + id + '/reviews', { limit : 3 }, function(result) {
+                bookworm.get('/books/' + id + '/reviews', {}, function(result) {
                     
                     // Re-format the date string
                     for (var i in result.data.reviews) {
@@ -61,7 +94,47 @@ app.get('/book', function(request, response) {
                     
                     // Check append the result to the data
                     data.data['reviews'] = result.data.reviews;
-                    response.render('book.html', { book : data.data });
+                    
+                    // Separate the page count
+                    // and downloads
+                    view_cache[id] = data.data.view_count;
+                    down_cache[id] = data.data.download_count;
+                    delete data.data.download_count;
+                    delete data.data.view_count;
+
+                    // Compute for the checksum
+                    var checksum = doMd5(JSON.stringify(data.data));
+                    var found = false;
+
+                    // Check for data change
+                    for (var i in page_cache) {
+                        if (page_cache[i].page === 'book' &&
+                            page_cache[i].hash === hash &&
+                            page_cache[i].checksum === checksum) {
+                        
+                            // Check for checksum
+                            found = true;
+                            response.end(page_cache[i].html);
+                            break;
+                        }
+                    }
+
+                    // Render page, and generate cache
+                    if (!found) {
+                        response.render('book.html', { 
+                            book : data.data 
+                        }, function(error, html) {
+
+                            page_cache.push({
+                                page : 'book',
+                                checksum : checksum,
+                                hash : hash,
+                                html : html
+                            });
+
+                            response.end(html);
+                        });
+                    }
                 });
             else
                 response.redirect('/notfound');
@@ -142,6 +215,9 @@ app.get('/books', function(request, response) {
         params.rating_average = 0;
     }
 
+    // Generate hash for books
+    var hash = doMd5(JSON.stringify(params));
+
     bookworm.get('/books', params, function(books) {
         
         // We need to construct a range of 5 digits for paging
@@ -188,7 +264,37 @@ app.get('/books', function(request, response) {
                 // Add to books data too
                 books['authors'] = authors.data;
                 
-                response.render('books.html', { books : books });
+                // Compute the checksum
+                var checksum = doMd5(JSON.stringify(books));
+                var found = false;
+
+                // Search for checksum and hash
+                for (var i in page_cache) {
+                    if (page_cache[i].page === 'books' &&
+                        page_cache[i].hash === hash &&
+                        page_cache[i].checksum === checksum) {
+                    
+                        // Return the cache
+                        response.end(page_cache[i].html);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    
+                    // Generate cache
+                    response.render('books.html', { books : books }, function(error, html) {
+                        page_cache.push({
+                            page : 'books',
+                            hash : hash,
+                            checksum : checksum,
+                            html : html
+                        });
+
+                        response.end(html);
+                    });
+                }
             });
         });
     });
@@ -274,16 +380,25 @@ app.get('/admin', function(request, response) {
 });
 
 // Static files
+/*
+ * You can use this,
+ * or just use a webserver to serve static files (better)
 app.use('/js', express.static(__dirname + '/bootstrap/js'));
 app.use('/img', express.static(__dirname + '/bootstrap/img'));
 app.use('/css', express.static(__dirname + '/bootstrap/css'));
 app.use('/less', express.static(__dirname + '/bootstrap/less'));
 app.use('/scss', express.static(__dirname + '/bootstrap/scss'));
 app.use('/font', express.static(__dirname + '/bootstrap/font'));
+ */
 
 // Listen to a random port (proxied)
 app.listen(1338);
 
 // Lower priveleges
-process.setgid('www-data');
-process.setuid('www-data');
+process.setgid('ruel');
+process.setuid('ruel');
+
+// md5 for hashing
+function doMd5(password) {
+    return crypto.createHash('md5').update(password).digest("hex");
+}
